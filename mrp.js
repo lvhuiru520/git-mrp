@@ -113,7 +113,7 @@ async function main() {
 
   const projectPath = getProjectPath();
   // 获取远程分支
-  const branches = getBranches();
+  const branches = getRemoteBranches();
   const source = getCurrentBranch();
   // 排序 release 放第一位
   const sortedBranches = [
