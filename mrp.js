@@ -61,14 +61,18 @@ function getProjectPath() {
   return encodeURIComponent(pathPart.replace(".git", ""));
 }
 
-// 获取分支列表
 function getBranches() {
-  const raw = execSync("git for-each-ref --format='%(refname:short)' refs/remotes/origin/ --no-color")
-    .toString("utf-8")   // 明确用 utf-8 编码
-    .split("\n")
-    .map(b => b.replace(/^origin\//, "").trim())
+  const raw = execSync(
+    'git for-each-ref --format=\'%(refname:short)\' refs/remotes/origin/ --no-color',
+    { encoding: 'utf-8' }
+  );
+
+  const branches = raw
+    .split('\n')
+    .map(b => b.replace(/^origin\//, '').trim())
     .filter(Boolean);
-  return raw;
+
+  return branches;
 }
 
 // 创建 MR
