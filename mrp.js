@@ -8,7 +8,10 @@ import fetch from "node-fetch";
 import open from "open";
 
 // ----------------- 配置 -----------------
-const CONFIG_PATH = path.join(process.env.HOME || process.env.USERPROFILE, ".gitmrprc");
+const CONFIG_PATH = path.join(
+  process.env.HOME || process.env.USERPROFILE,
+  ".gitmrprc",
+);
 
 // 加载配置
 function loadConfig() {
@@ -40,8 +43,8 @@ async function setupConfig() {
       type: "input",
       name: "default_target",
       message: "请输入默认 target 分支:",
-      default: "test"
-    }
+      default: "test",
+    },
   ]);
 
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(answers, null, 2));
@@ -79,23 +82,42 @@ function getRemoteBranches() {
 }
 
 // 创建 MR
-async function createMR({ source, target, title, token, assignee_id, base, projectPath }) {
-  const res = await fetch(`${base}/api/v4/projects/${projectPath}/merge_requests`, {
-    method: "POST",
-    headers: {
-      "PRIVATE-TOKEN": token,
-      "Content-Type": "application/json"
+async function createMR({
+  source,
+  target,
+  title,
+  token,
+  assignee_id,
+  base,
+  projectPath,
+}) {
+  const res = await fetch(
+    `${base}/api/v4/projects/${projectPath}/merge_requests`,
+    {
+      method: "POST",
+      headers: {
+        "PRIVATE-TOKEN": token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        source_branch: source,
+        target_branch: target,
+        title,
+        assignee_id,
+      }),
     },
-    body: JSON.stringify({
-      source_branch: source,
-      target_branch: target,
-      title,
-      assignee_id
-    })
-  });
+  );
   const data = await res.json();
-  console.log("MR 创建成功:", data.web_url);
-  await open(data.web_url);
+  if (data.message) {
+    const msg =
+      typeof data.message === "string"
+        ? data.message
+        : JSON.stringify(data.message);
+    console.log("MR 创建失败:", msg);
+  } else {
+    console.log("MR 创建成功:", data.web_url);
+    await open(data.web_url);
+  }
 }
 
 // ----------------- 主程序 -----------------
@@ -118,7 +140,7 @@ async function main() {
   // 排序 release 放第一位
   const sortedBranches = [
     "release",
-    ...branches.filter(b => b !== "release")
+    ...branches.filter((b) => b !== "release"),
   ];
 
   const { target } = await inquirer.prompt([
@@ -127,18 +149,17 @@ async function main() {
       name: "target",
       message: `当前分支: ${source}，请选择 target 分支`,
       choices: sortedBranches,
-      default: DEFAULT_TARGET
-    }
+      default: DEFAULT_TARGET,
+    },
   ]);
-
 
   const { title } = await inquirer.prompt([
     {
       type: "input",
       name: "title",
       message: "请输入 MR 标题:",
-      default: `From ${source} into ${target}`
-    }
+      default: `From ${source} into ${target}`,
+    },
   ]);
 
   await createMR({
@@ -148,8 +169,8 @@ async function main() {
     token: TOKEN,
     assignee_id: ASSIGNEE_ID,
     base: BASE,
-    projectPath
+    projectPath,
   });
 }
 
-main().catch(e => console.error(e));
+main().catch((e) => console.error(e));
