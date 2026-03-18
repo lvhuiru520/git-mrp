@@ -61,18 +61,21 @@ function getProjectPath() {
   return encodeURIComponent(pathPart.replace(".git", ""));
 }
 
-function getBranches() {
-  const raw = execSync(
-    'git for-each-ref --format=\'%(refname:short)\' refs/remotes/origin/ --no-color',
-    { encoding: 'utf-8' }
-  );
+// 当前分支
+function getCurrentBranch() {
+  return execSync("git branch --show-current").toString().trim();
+}
 
-  const branches = raw
-    .split('\n')
-    .map(b => b.replace(/^origin\//, '').trim())
-    .filter(Boolean);
+// 远程分支
+function getRemoteBranches() {
+  const output = execSync("git branch -r")
+    .toString()
+    .trim()
+    .split("\n")
+    .map((b) => b.replace("origin/", "").trim())
+    .filter((b) => b && !b.includes("HEAD"));
 
-  return branches;
+  return [...new Set(output)];
 }
 
 // 创建 MR
@@ -109,8 +112,9 @@ async function main() {
   const DEFAULT_TARGET = config.default_target || "test";
 
   const projectPath = getProjectPath();
+  // 获取远程分支
   const branches = getBranches();
-
+  const source = getCurrentBranch();
   // 排序 release 放第一位
   const sortedBranches = [
     "release",
@@ -121,14 +125,12 @@ async function main() {
     {
       type: "list",
       name: "target",
-      message: `当前分支: ${branches.includes("HEAD") ? "HEAD" : branches[0]}，请选择 target 分支`,
+      message: `当前分支: ${source}，请选择 target 分支`,
       choices: sortedBranches,
       default: DEFAULT_TARGET
     }
   ]);
 
-  const source = execSync("git rev-parse --abbrev-ref HEAD",{ encoding: 'utf-8' }).toString().trim();
-  console.log("🚀 ~ main ~ source:", source)
 
   const { title } = await inquirer.prompt([
     {
