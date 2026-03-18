@@ -1,0 +1,14 @@
+{
+  "name": "git-mrp",
+  "version": "1.0.0",
+  "description": "CLI for creating GitLab Merge Requests",
+  "bin": {
+    "git-mrp": "./mrp.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "inquirer": "^8.2.0",
+    "node-fetch": "^2.6.12",
+    "open": "^9.0.0"
+  }
+}
