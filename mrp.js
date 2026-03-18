@@ -63,10 +63,12 @@ function getProjectPath() {
 
 // 获取分支列表
 function getBranches() {
-  const result = execSync("git branch -r").toString().split("\n")
-    .map(b => b.trim().replace("origin/", ""))
-    .filter(b => b && b !== "HEAD");
-  return result;
+  const raw = execSync("git for-each-ref --format='%(refname:short)' refs/remotes/origin/ --no-color")
+    .toString("utf-8")   // 明确用 utf-8 编码
+    .split("\n")
+    .map(b => b.replace(/^origin\//, "").trim())
+    .filter(Boolean);
+  return raw;
 }
 
 // 创建 MR
