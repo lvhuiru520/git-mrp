@@ -128,6 +128,7 @@ async function main() {
   ]);
 
   const source = execSync("git rev-parse --abbrev-ref HEAD",{ encoding: 'utf-8' }).toString().trim();
+  console.log("🚀 ~ main ~ source:", source)
 
   const { title } = await inquirer.prompt([
     {
